@@ -6,18 +6,22 @@
 
 # ---------- deps ----------
 FROM node:22-alpine AS deps
-# node:22-alpine no longer bundles yarn; install yarn classic from npm so we
-# never depend on Corepack interactivity.
-RUN npm install --global --no-fund --no-audit yarn@1.22.22
+# node:22-alpine ships a Corepack-managed yarn shim at /usr/local/bin/yarn.
+# Enable Corepack and let it materialise the version pinned in
+# web/package.json's "packageManager" field. The env var skips the
+# interactive download prompt the first time Corepack fetches the binary.
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN corepack enable
 WORKDIR /app
 COPY web/package.json web/yarn.lock ./
 RUN yarn install --frozen-lockfile --network-timeout 600000
 
 # ---------- builder ----------
 FROM node:22-alpine AS builder
-RUN npm install --global --no-fund --no-audit yarn@1.22.22
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
+    NEXT_TELEMETRY_DISABLED=1
+RUN corepack enable
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY web/ ./
 # The build expects DATABASE_URL only at request time, so a build-time stub is fine.
