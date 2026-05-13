@@ -38,9 +38,6 @@ services:
       postgres:
         condition: service_healthy
     restart: "no"
-    # 1. apply migrations, 2. load the workbook. Idempotent.
-    entrypoint: ["/bin/sh", "-c"]
-    command: ["uv run csat-etl migrate && uv run csat-etl load --xlsm ../Copy\\ of\\ Survey_Data_Model.xlsm"]
 
   web:
     build:

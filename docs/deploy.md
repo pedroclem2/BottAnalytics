@@ -26,17 +26,22 @@ for the one-shot data load.
    to the Postgres service.
 5. Generate a public URL: **Settings → Networking → Generate Domain**.
    You now get something like `bott-analytics-production-xxxx.up.railway.app`.
-6. Seed the database: **New → Service → GitHub Repo (same one)** → set
-   **Settings → Root Directory** to `etl` (Railway will use
-   `etl/Dockerfile`). Add the same `DATABASE_URL` variable. The container
-   will boot once with `--help`; override the **Start Command** to:
+6. Seed the database. Add a second service from the same GitHub repo
+   (**+ New → GitHub Repo → BottAnalytics**) and configure it as follows:
 
-   ```bash
-   uv run csat-etl migrate && uv run csat-etl load --xlsm ../Copy\ of\ Survey_Data_Model.xlsm
-   ```
+   - **Settings → Build → Dockerfile Path**: `etl/Dockerfile`
+     *(leave Root Directory empty — the build context must be the repo
+     root so the Dockerfile can copy `db/` and the workbook).*
+   - **Settings → Deploy → Restart Policy**: `Never` (it's a one-shot job).
+   - **Variables → + New → Add Reference**:
+     `DATABASE_URL = ${{Postgres.DATABASE_URL}}`.
 
-   Deploy once; after the run completes you can pause or delete this
-   service. The data is now in Postgres.
+   The image's default CMD is `etl/bootstrap.sh`, which runs
+   `csat-etl migrate` then `csat-etl load`. Deploy. After ~30 seconds
+   the logs will show `[bootstrap] done. exit code 0` and the data is
+   loaded. You can leave the service in place — it will only re-run if
+   you redeploy it (and the load is idempotent: it truncates and
+   reloads).
 
 That's it. The web service auto-restarts on push.
 

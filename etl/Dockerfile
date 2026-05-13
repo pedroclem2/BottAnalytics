@@ -29,8 +29,11 @@ WORKDIR /app
 COPY db ./db
 COPY etl/src ./etl/src
 COPY etl/tests ./etl/tests
+COPY etl/bootstrap.sh ./etl/bootstrap.sh
+RUN chmod +x ./etl/bootstrap.sh
 COPY ["Copy of Survey_Data_Model.xlsm", "./Copy of Survey_Data_Model.xlsm"]
 
 WORKDIR /app/etl
-ENTRYPOINT ["uv", "run", "csat-etl"]
-CMD ["--help"]
+# Run migrate + load by default. Override with `docker run ... uv run csat-etl ...`
+# or by setting the Start Command on Railway / Fly when needed.
+CMD ["./bootstrap.sh"]
