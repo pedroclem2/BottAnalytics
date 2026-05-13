@@ -6,12 +6,16 @@
 
 # ---------- deps ----------
 FROM node:22-alpine AS deps
+# node:22-alpine no longer bundles yarn; install yarn classic from npm so we
+# never depend on Corepack interactivity.
+RUN npm install --global --no-fund --no-audit yarn@1.22.22
 WORKDIR /app
 COPY web/package.json web/yarn.lock ./
-RUN corepack disable && yarn install --frozen-lockfile --network-timeout 600000
+RUN yarn install --frozen-lockfile --network-timeout 600000
 
 # ---------- builder ----------
 FROM node:22-alpine AS builder
+RUN npm install --global --no-fund --no-audit yarn@1.22.22
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
