@@ -1,0 +1,39 @@
+# Fly.io configuration for the bott_analytics dashboard.
+# Usage:
+#   fly launch --copy-config --no-deploy        # creates the app on Fly
+#   fly postgres create --name bott-analytics-db
+#   fly postgres attach --app bott-analytics bott-analytics-db
+#   fly deploy
+#   # one-time seed:
+#   fly ssh console --app bott-analytics --command "node -e 'console.log(\"web is up\")'"
+#   # (run ETL from a separate machine — see docs/deploy.md)
+app = "bott-analytics"
+primary_region = "fra"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+  HOSTNAME = "0.0.0.0"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[http_service.checks]]
+  grace_period = "20s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"

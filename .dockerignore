@@ -1,0 +1,14 @@
+**/node_modules
+**/.next
+**/.git
+**/.venv
+**/.mypy_cache
+**/.ruff_cache
+**/.pytest_cache
+**/__pycache__
+**/.DS_Store
+**/.env
+**/.env.local
+**/.env.*.local
+etl/reports
+docs

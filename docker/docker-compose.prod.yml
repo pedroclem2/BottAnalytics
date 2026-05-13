@@ -1,0 +1,62 @@
+name: bott-analytics-prod
+
+# Self-contained production stack:
+#   1. postgres        — data store
+#   2. etl-bootstrap   — runs migrate + load once, then exits 0
+#   3. web             — Next.js standalone server
+#
+# Bring up locally with:
+#   docker compose -f docker/docker-compose.prod.yml --env-file .env up --build
+
+x-pg-env: &pg_env
+  POSTGRES_USER: ${POSTGRES_USER:-bott}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bott}
+  POSTGRES_DB: ${POSTGRES_DB:-bott_analytics}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment: *pg_env
+    volumes:
+      - bott_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "${POSTGRES_PORT:-5444}:5432"
+
+  etl-bootstrap:
+    build:
+      context: ..
+      dockerfile: etl/Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL_INTERNAL:-postgresql://bott:bott@postgres:5432/bott_analytics}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    # 1. apply migrations, 2. load the workbook. Idempotent.
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["uv run csat-etl migrate && uv run csat-etl load --xlsm ../Copy\\ of\\ Survey_Data_Model.xlsm"]
+
+  web:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL_INTERNAL:-postgresql://bott:bott@postgres:5432/bott_analytics}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      etl-bootstrap:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
+volumes:
+  bott_pg_data:

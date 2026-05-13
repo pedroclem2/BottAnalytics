@@ -1,0 +1,3 @@
+# Workaround for corporate TLS interception (Kyndryl proxy).
+# Trust the PyPI hosts explicitly so uv accepts the rewritten certificate chain.
+allow-insecure-host = ["pypi.org", "files.pythonhosted.org"]
