@@ -95,10 +95,6 @@ prod-down:
 prod-logs:
     docker compose -f docker/docker-compose.prod.yml logs -f --tail=120
 
-# Build the web image only (useful for pushing to a registry)
+# Build the combined web+ETL image (useful for pushing to a registry)
 docker-build:
-    docker build -t bott-analytics-web:latest .
-
-# Build the ETL image only
-docker-build-etl:
-    docker build -t bott-analytics-etl:latest -f etl/Dockerfile .
+    docker build -t bott-analytics:latest .
