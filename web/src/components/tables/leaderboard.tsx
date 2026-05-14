@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { GlassSection } from "@/components/glass/glass-section";
 import { cn } from "@/lib/ui/cn";
 import { formatNumber, formatPercent } from "@/lib/ui/format";
@@ -16,11 +18,14 @@ export function Leaderboard({
   description,
   rows,
   variant,
+  linkBase,
 }: {
   title: string;
   description?: string;
   rows: LeaderboardRow[];
   variant: "best" | "worst";
+  /** If provided, each row's name links to `${linkBase}/${row.id}`. */
+  linkBase?: string;
 }) {
   if (rows.length === 0) {
     return (
@@ -39,7 +44,16 @@ export function Leaderboard({
               {String(idx + 1).padStart(2, "0")}
             </span>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm text-fg">{r.name}</div>
+              {linkBase ? (
+                <Link
+                  href={`${linkBase}/${r.id}` as never}
+                  className="block truncate text-sm text-fg hover:text-accent"
+                >
+                  {r.name}
+                </Link>
+              ) : (
+                <div className="truncate text-sm text-fg">{r.name}</div>
+              )}
               {r.subtitle ? (
                 <div className="truncate text-[11px] text-fg-muted">{r.subtitle}</div>
               ) : null}

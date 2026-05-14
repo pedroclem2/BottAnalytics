@@ -4,6 +4,11 @@ import { notFound } from "next/navigation";
 import type { SearchParams } from "nuqs/server";
 
 import { HorizontalBar } from "@/components/charts/horizontal-bar";
+import {
+  SentimentTreemap,
+  type TreemapBranch,
+  type TreemapLeaf,
+} from "@/components/charts/sentiment-treemap";
 import { TrendArea } from "@/components/charts/trend-area";
 import { FilterBarLoader } from "@/components/filters/filter-bar-loader";
 import { GlassSection } from "@/components/glass/glass-section";
@@ -23,6 +28,7 @@ import {
   getEntityTeamBreakdown,
 } from "@/lib/queries/entities";
 import { getKpiSummary } from "@/lib/queries/executive";
+import { getServiceAreaTreemap } from "@/lib/queries/users";
 import { formatPercent } from "@/lib/ui/format";
 
 const PAGE_SIZE = 20;
@@ -48,7 +54,7 @@ export default async function EntityDetailPage({
   const pageStr = typeof rawSearch.page === "string" ? rawSearch.page : Array.isArray(rawSearch.page) ? rawSearch.page[0] : undefined;
   const page = Math.max(1, Number.parseInt(pageStr ?? "1", 10) || 1);
 
-  const [summary, daily, teams, bestAgents, worstAgents, questions, responses, config] =
+  const [summary, daily, teams, bestAgents, worstAgents, questions, responses, config, treemap] =
     await Promise.all([
       getKpiSummary(filters),
       getEntityDailyTrend(entity.entityId, baseFilters),
@@ -61,7 +67,24 @@ export default async function EntityDetailPage({
         offset: (page - 1) * PAGE_SIZE,
       }),
       getComplianceConfig(),
+      getServiceAreaTreemap({ kind: "entity", entityId: entity.entityId }),
     ]);
+
+  const treemapData: TreemapBranch[] = treemap.map((branch) => ({
+    name: branch.name,
+    size: branch.size,
+    avgScore: branch.avgScore,
+    pctTop2Box: branch.pctTop2Box,
+    status: branch.status,
+    children: branch.children.map<TreemapLeaf>((c) => ({
+      name: c.name,
+      size: c.size,
+      avgScore: c.avgScore,
+      pctTop2Box: c.pctTop2Box,
+      status: c.status,
+      parentName: branch.name,
+    })),
+  }));
 
   let status: "green" | "amber" | "red" | "insufficient_data" = "insufficient_data";
   if (summary.totalResponses >= config.minResponsesForGrading) {
@@ -159,6 +182,19 @@ export default async function EntityDetailPage({
           )}
         </GlassSection>
 
+        <GlassSection
+          title="Service-area sentiment map"
+          description="Each rectangle is a service area for this entity, sized by interaction volume and coloured by top-2 box satisfaction. The biggest red blocks are where the entity's CSAT is bleeding from."
+          actions={
+            <span className="inline-flex items-center gap-1 rounded-full border border-glass-border bg-glass px-3 py-1 text-[11px] text-fg-muted">
+              <Building2 className="h-3 w-3" />
+              {treemapData.length} service areas
+            </span>
+          }
+        >
+          <SentimentTreemap data={treemapData} />
+        </GlassSection>
+
         <section className="grid gap-4 lg:grid-cols-3">
           <GlassSection
             className="lg:col-span-2"
@@ -203,6 +239,7 @@ export default async function EntityDetailPage({
             title="Happy end users"
             description="Highest top-2 box % (min. 5 responses)"
             variant="best"
+            linkBase="/users"
             rows={bestAgents.map((a) => ({
               id: a.agentId,
               name: a.name,
@@ -216,6 +253,7 @@ export default async function EntityDetailPage({
             title="Unhappy end users"
             description="Lowest top-2 box % (min. 5 responses)"
             variant="worst"
+            linkBase="/users"
             rows={worstAgents.map((a) => ({
               id: a.agentId,
               name: a.name,
