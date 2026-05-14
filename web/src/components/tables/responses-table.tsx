@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { GlassCard } from "@/components/glass/glass-card";
 import type { ResponseRow } from "@/lib/queries/entities";
 import { cn } from "@/lib/ui/cn";
@@ -114,18 +112,7 @@ export function ResponsesTable({
                       day: "numeric",
                     })}
                   </td>
-                  <td className="px-4 py-2 text-fg">
-                    {r.agentId != null && r.agentName ? (
-                      <Link
-                        href={`/users/${r.agentId}` as never}
-                        className="hover:text-accent"
-                      >
-                        {r.agentName}
-                      </Link>
-                    ) : (
-                      (r.agentName ?? "—")
-                    )}
-                  </td>
+                  <td className="px-4 py-2 text-fg">{r.agentName ?? "—"}</td>
                   <td className="px-4 py-2 text-xs text-fg-muted">{r.teamName}</td>
                   <td className="px-4 py-2 text-xs text-fg-muted line-clamp-1 max-w-xs">{r.questionText}</td>
                   <td className="px-4 py-2">

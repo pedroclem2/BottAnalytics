@@ -162,7 +162,6 @@ export default async function TeamDetailPage({
               title="Happy end users"
               description="Highest top-2 box %"
               variant="best"
-              linkBase="/users"
               rows={bestAgents.map((a) => ({
                 id: a.agentId,
                 name: a.name,
@@ -176,7 +175,6 @@ export default async function TeamDetailPage({
               title="Unhappy end users"
               description="Lowest top-2 box %"
               variant="worst"
-              linkBase="/users"
               rows={worstAgents.map((a) => ({
                 id: a.agentId,
                 name: a.name,

@@ -300,7 +300,6 @@ export async function getEntityQuestionBreakdown(
 export interface ResponseRow {
   instanceId: string;
   createdAt: Date;
-  agentId: number | null;
   agentName: string | null;
   teamName: string;
   questionText: string;
@@ -330,7 +329,6 @@ export async function getEntityResponses(
     {
       instance_id: string;
       created_at: Date;
-      agent_id: number | null;
       agent_name: string | null;
       team_name: string;
       question_text: string;
@@ -343,7 +341,6 @@ export async function getEntityResponses(
     SELECT
       f.instance_id,
       f.created_at,
-      a.id                AS agent_id,
       a.name              AS agent_name,
       t.name              AS team_name,
       q.text              AS question_text,
@@ -367,7 +364,6 @@ export async function getEntityResponses(
     rows: rows.map((r) => ({
       instanceId: r.instance_id,
       createdAt: r.created_at,
-      agentId: r.agent_id,
       agentName: r.agent_name,
       teamName: r.team_name,
       questionText: r.question_text,
