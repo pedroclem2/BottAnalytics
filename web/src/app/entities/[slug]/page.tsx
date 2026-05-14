@@ -200,7 +200,7 @@ export default async function EntityDetailPage({
 
         <section className="grid gap-4 lg:grid-cols-2">
           <Leaderboard
-            title="Top agents"
+            title="Happy end users"
             description="Highest top-2 box % (min. 5 responses)"
             variant="best"
             rows={bestAgents.map((a) => ({
@@ -213,7 +213,7 @@ export default async function EntityDetailPage({
             }))}
           />
           <Leaderboard
-            title="Agents to coach"
+            title="Unhappy end users"
             description="Lowest top-2 box % (min. 5 responses)"
             variant="worst"
             rows={worstAgents.map((a) => ({

@@ -159,7 +159,7 @@ export default async function TeamDetailPage({
           </GlassSection>
           <div className="space-y-4">
             <Leaderboard
-              title="Top agents"
+              title="Happy end users"
               description="Highest top-2 box %"
               variant="best"
               rows={bestAgents.map((a) => ({
@@ -172,7 +172,7 @@ export default async function TeamDetailPage({
               }))}
             />
             <Leaderboard
-              title="Coach"
+              title="Unhappy end users"
               description="Lowest top-2 box %"
               variant="worst"
               rows={worstAgents.map((a) => ({
